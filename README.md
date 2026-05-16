@@ -14,6 +14,7 @@ An elite, high-fidelity weather forecasting portal built with core web technolog
 Witness the modern aesthetic. Here is the real-time operational interface displaying the dynamic atmospheric layout configurations, premium typography scaling, and our custom glassmorphic cards:
 
 ![AstroWeather v3 Premium Dashboard Showcase](https://github.com/user-attachments/assets/ed281e09-0824-4f0f-bf01-cbdfa5ea8d3b)
+<img width="1433" height="723" alt="image" src="https://github.com/user-attachments/assets/4683792e-8cee-43ee-9f88-913d19c420ad" />
 
 ---
 
