@@ -1,4 +1,4 @@
-# 🌟 AstroWeather v3: Real-Time Sky & Live Weather Platform
+# 🌟 AstroWeather : Real-Time Sky & Live Weather Platform
 
 An elite, high-fidelity weather forecasting portal built with core web technologies. Experience atmospheric telemetry through a stunning glassmorphic interface, featuring intelligent global search, live autocomplete, and dynamic environmental state reflections.
 
