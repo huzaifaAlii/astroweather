@@ -1,0 +1,728 @@
+/* ════════════════════════════════════════════
+   ASTROWEATHER · style.css v3.0
+   Real photo BG · Animated clouds · Autocomplete
+   ════════════════════════════════════════════ */
+
+:root {
+  --sky-top:  #020710;
+  --cyan:     #00d4ff;
+  --violet:   #7c3aed;
+  --pink:     #e879f9;
+  --gold:     #fbbf24;
+  --teal:     #2dd4bf;
+  --orange:   #f97316;
+  --gb:       rgba(255,255,255,0.06);
+  --gb-hover: rgba(255,255,255,0.10);
+  --gbord:    rgba(255,255,255,0.13);
+  --gblur:    blur(22px) saturate(160%);
+  --t1: #f8fafc;
+  --t2: #94a3b8;
+  --t3: #64748b;
+  --fs:  'Sora', sans-serif;
+  --fb:  'Bebas Neue', cursive;
+  --fdm: 'DM Sans', sans-serif;
+  --fsg: 'Space Grotesk', sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--fdm);
+  background: var(--sky-top);
+  color: var(--t1);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ════════════════════════════════════════════
+   BACKGROUND WORLD
+   ════════════════════════════════════════════ */
+.bg-world {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+}
+
+/* ── PHOTO BACKGROUND ── */
+.photo-bg {
+  position: absolute;
+  inset: 0;
+  background-image: url('clouds_bg.jpg');
+  background-size: cover;
+  background-position: center 60%;
+  background-repeat: no-repeat;
+  transform-origin: center;
+  transition: opacity 1.5s ease;
+  will-change: transform;
+}
+
+/* Dark overlay — adjustable per weather */
+.photo-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(2,7,16,0.55) 0%,
+    rgba(2,7,16,0.35) 40%,
+    rgba(2,7,16,0.60) 100%
+  );
+  transition: background 1.5s ease;
+}
+
+/* Stars canvas */
+#starsCanvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 2s ease;
+}
+body.show-stars #starsCanvas { opacity: 1; }
+
+/* ── AURORA ── */
+.aurora-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.aur {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(90px);
+  animation: aurPulse ease-in-out infinite alternate;
+  mix-blend-mode: screen;
+  opacity: 0;
+  transition: opacity 2s ease;
+}
+body.show-stars .aur { opacity: 1; }
+.a1 {
+  width: 70vw; height: 50vh;
+  background: radial-gradient(ellipse, rgba(0,212,255,0.14) 0%, transparent 70%);
+  top: -10%; left: -5%;
+  animation-duration: 10s; animation-delay: 0s;
+}
+.a2 {
+  width: 60vw; height: 45vh;
+  background: radial-gradient(ellipse, rgba(124,58,237,0.12) 0%, transparent 70%);
+  top: 5%; right: -5%;
+  animation-duration: 13s; animation-delay: 3s;
+}
+.a3 {
+  width: 50vw; height: 35vh;
+  background: radial-gradient(ellipse, rgba(232,121,249,0.09) 0%, transparent 70%);
+  top: 15%; left: 30%;
+  animation-duration: 16s; animation-delay: 6s;
+}
+@keyframes aurPulse {
+  from { opacity: 0.7; transform: scale(1) translateY(0); }
+  to   { opacity: 1.0; transform: scale(1.15) translateY(-3%); }
+}
+
+/* ── ANIMATED PHOTO CLOUD SLICES ──
+   Three parallax strips cut from the photo,
+   each drifting at a different speed.
+   Only visible when weather is cloudy/sky mode.
+*/
+.cloud-photo-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 1.5s ease;
+}
+body.clouds-moving .cloud-photo-layer { opacity: 1; }
+
+.cph {
+  position: absolute;
+  background-image: url('clouds_bg.jpg');
+  background-size: 200% auto;
+  background-repeat: repeat-x;
+  border-radius: 0;
+  will-change: background-position;
+}
+
+/* Strip 1 — lower clouds, slow drift */
+.cp1 {
+  top: 45%; height: 28%;
+  left: 0; right: 0;
+  background-position: 0% 80%;
+  background-size: 160% auto;
+  opacity: 0.55;
+  animation: cloudDriftA 60s linear infinite;
+  mask-image: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.7) 20%, rgba(0,0,0,0.7) 80%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.7) 20%, rgba(0,0,0,0.7) 80%, transparent 100%);
+}
+
+/* Strip 2 — mid clouds, medium speed */
+.cp2 {
+  top: 25%; height: 22%;
+  left: 0; right: 0;
+  background-position: 50% 55%;
+  background-size: 180% auto;
+  opacity: 0.35;
+  animation: cloudDriftB 90s linear infinite;
+  mask-image: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.5) 30%, rgba(0,0,0,0.5) 70%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.5) 30%, rgba(0,0,0,0.5) 70%, transparent 100%);
+}
+
+/* Strip 3 — wispy top clouds, fastest */
+.cp3 {
+  top: 5%; height: 18%;
+  left: 0; right: 0;
+  background-position: 100% 15%;
+  background-size: 140% auto;
+  opacity: 0.25;
+  animation: cloudDriftC 45s linear infinite;
+  mask-image: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.4) 20%, rgba(0,0,0,0.4) 80%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.4) 20%, rgba(0,0,0,0.4) 80%, transparent 100%);
+}
+
+@keyframes cloudDriftA {
+  from { background-position: 0% 80%; }
+  to   { background-position: 100% 80%; }
+}
+@keyframes cloudDriftB {
+  from { background-position: 50% 55%; }
+  to   { background-position: 150% 55%; }
+}
+@keyframes cloudDriftC {
+  from { background-position: 100% 15%; }
+  to   { background-position: 200% 15%; }
+}
+
+/* ── WEATHER FX CANVASES ── */
+.fx-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.hidden { display: none !important; }
+
+/* ── SHOOTING STARS ── */
+.shooters { position: absolute; inset: 0; overflow: hidden; }
+.shot {
+  position: absolute;
+  height: 1px;
+  width: 180px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.85), transparent);
+  border-radius: 2px;
+  animation: shootAcross linear infinite;
+  opacity: 0;
+}
+.s1 { top: 12%; left: -200px; animation-duration: 7s;  animation-delay: 2s;  transform: rotate(-20deg); }
+.s2 { top: 35%; left: -200px; animation-duration: 9s;  animation-delay: 6s;  transform: rotate(-15deg); }
+.s3 { top: 55%; left: -200px; animation-duration: 11s; animation-delay: 12s; transform: rotate(-22deg); }
+@keyframes shootAcross {
+  0%   { left: -200px; opacity: 0; }
+  4%   { opacity: 1; }
+  88%  { opacity: 0.8; }
+  100% { left: 110vw; opacity: 0; }
+}
+
+/* ════════════════════════════════════════════
+   GLASS UTILITY
+   ════════════════════════════════════════════ */
+.glass {
+  background: var(--gb);
+  backdrop-filter: var(--gblur);
+  -webkit-backdrop-filter: var(--gblur);
+  border: 1px solid var(--gbord);
+  border-radius: 20px;
+  position: relative;
+  overflow: hidden;
+  transition: transform .3s, box-shadow .3s;
+}
+.glass::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.22), transparent);
+  pointer-events: none;
+}
+.glass:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 50px rgba(0,0,0,.5), 0 0 30px rgba(0,212,255,.12);
+}
+
+/* ════════════════════════════════════════════
+   APP LAYOUT
+   ════════════════════════════════════════════ */
+.app {
+  position: relative;
+  z-index: 10;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 16px 80px;
+}
+
+/* ── NAV ── */
+.topnav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 0 16px;
+}
+.brand { display: flex; align-items: center; gap: 10px; }
+.brand-dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: var(--cyan);
+  box-shadow: 0 0 14px var(--cyan);
+  animation: dotBlink 2s ease-in-out infinite;
+}
+@keyframes dotBlink {
+  0%,100% { opacity: 1; box-shadow: 0 0 14px var(--cyan); }
+  50%      { opacity: 0.4; box-shadow: none; }
+}
+.brand-name {
+  font-family: var(--fs);
+  font-size: .95rem;
+  font-weight: 700;
+  letter-spacing: 4px;
+  background: linear-gradient(90deg, var(--cyan), var(--violet));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.nav-clock {
+  font-family: var(--fsg);
+  font-size: .82rem;
+  letter-spacing: 2px;
+  color: var(--t2);
+}
+
+/* ── HERO ── */
+.hero-section {
+  text-align: center;
+  padding: 40px 0 36px;
+}
+.hero-title {
+  font-family: var(--fs);
+  font-size: clamp(2.4rem, 6vw, 4rem);
+  font-weight: 800;
+  line-height: 1.1;
+  color: #fff;
+  margin-bottom: 14px;
+  letter-spacing: -1px;
+  text-shadow: 0 2px 24px rgba(0,0,0,0.6);
+}
+.hero-accent {
+  background: linear-gradient(135deg, var(--cyan) 0%, var(--violet) 50%, var(--pink) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.hero-sub {
+  font-family: var(--fdm);
+  font-size: 1rem;
+  color: var(--t2);
+  margin-bottom: 32px;
+  letter-spacing: .5px;
+  text-shadow: 0 1px 8px rgba(0,0,0,0.5);
+}
+
+/* ── SEARCH WRAP (relative for dropdown) ── */
+.search-wrap {
+  position: relative;
+  max-width: 620px;
+  margin: 0 auto 18px;
+}
+
+/* Search box */
+.search-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255,255,255,0.10);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  border: 1px solid rgba(255,255,255,0.20);
+  border-radius: 50px;
+  padding: 6px 6px 6px 20px;
+  box-shadow: 0 8px 32px rgba(0,0,0,.40), inset 0 1px 0 rgba(255,255,255,0.14);
+  transition: border-color .3s, box-shadow .3s;
+}
+.search-box:focus-within {
+  border-color: rgba(0,212,255,.5);
+  box-shadow: 0 8px 32px rgba(0,0,0,.40), 0 0 24px rgba(0,212,255,.25), inset 0 1px 0 rgba(255,255,255,0.14);
+}
+.sb-icon { width: 18px; height: 18px; color: var(--t2); flex-shrink: 0; }
+.sb-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-family: var(--fdm);
+  font-size: 1rem;
+  color: var(--t1);
+}
+.sb-input::placeholder { color: var(--t3); }
+.sb-btn {
+  padding: 11px 24px;
+  border-radius: 40px;
+  border: none;
+  background: linear-gradient(135deg, var(--cyan), var(--violet));
+  color: #fff;
+  font-family: var(--fs);
+  font-size: .85rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all .2s;
+  flex-shrink: 0;
+}
+.sb-btn svg { width: 16px; height: 16px; }
+.sb-btn:hover { transform: scale(1.04); box-shadow: 0 0 20px rgba(0,212,255,.5); }
+
+/* ── AUTOCOMPLETE DROPDOWN ── */
+.autocomplete-box {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0; right: 0;
+  background: rgba(8,18,40,0.96);
+  backdrop-filter: blur(30px);
+  -webkit-backdrop-filter: blur(30px);
+  border: 1px solid rgba(0,212,255,0.25);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 16px 50px rgba(0,0,0,0.6), 0 0 20px rgba(0,212,255,0.1);
+  display: none;
+  z-index: 999;
+}
+.autocomplete-box.open { display: block; }
+.ac-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 20px;
+  cursor: pointer;
+  transition: background .15s;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  font-family: var(--fdm);
+  font-size: .92rem;
+  color: var(--t1);
+}
+.ac-item:last-child { border-bottom: none; }
+.ac-item:hover, .ac-item.highlighted { background: rgba(0,212,255,0.10); }
+.ac-flag { font-size: 1.1rem; flex-shrink: 0; }
+.ac-name { flex: 1; }
+.ac-sub {
+  font-size: .75rem;
+  color: var(--t3);
+  margin-top: 1px;
+}
+.ac-country-code {
+  font-family: var(--fsg);
+  font-size: .7rem;
+  letter-spacing: 2px;
+  color: var(--cyan);
+  opacity: 0.7;
+  flex-shrink: 0;
+}
+.ac-loading {
+  padding: 14px 20px;
+  color: var(--t3);
+  font-size: .85rem;
+  text-align: center;
+}
+
+/* Quick pills */
+.quick-row { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.qpill {
+  padding: 6px 16px;
+  border-radius: 30px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.06);
+  color: var(--t2);
+  font-family: var(--fdm);
+  font-size: .82rem;
+  cursor: pointer;
+  transition: all .2s;
+  backdrop-filter: blur(8px);
+}
+.qpill:hover {
+  border-color: var(--cyan);
+  color: var(--cyan);
+  background: rgba(0,212,255,.10);
+}
+
+/* ── STATES ── */
+.state-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 60px 20px;
+  color: var(--t2);
+  font-family: var(--fdm);
+  letter-spacing: .5px;
+}
+.spin-ring {
+  width: 44px; height: 44px;
+  border: 3px solid rgba(255,255,255,.07);
+  border-top-color: var(--cyan);
+  border-right-color: var(--violet);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.err-ico { font-size: 2.2rem; }
+
+/* ════════════════════════════════════════════
+   WEATHER CONTENT
+   ════════════════════════════════════════════ */
+.wc {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  animation: riseUp .55s ease;
+}
+@keyframes riseUp {
+  from { opacity: 0; transform: translateY(28px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── CURRENT WEATHER CARD ── */
+.cw-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 32px 36px;
+  gap: 24px;
+  background: linear-gradient(135deg,
+    rgba(0,212,255,.07),
+    rgba(124,58,237,.07),
+    rgba(232,121,249,.04)) !important;
+  border-color: rgba(0,212,255,.18) !important;
+}
+.cw-loc { margin-bottom: 8px; }
+.cw-city {
+  font-family: var(--fs);
+  font-size: 2rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #fff 30%, var(--cyan));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  display: block;
+  line-height: 1.1;
+}
+.cw-country {
+  font-family: var(--fsg);
+  font-size: .78rem;
+  letter-spacing: 4px;
+  color: var(--t2);
+  text-transform: uppercase;
+}
+.cw-temp-row { display: flex; align-items: flex-start; gap: 10px; margin: 6px 0 8px; }
+.cw-temp {
+  font-family: var(--fb);
+  font-size: 5.5rem;
+  line-height: 1;
+  background: linear-gradient(135deg, #fff 40%, var(--gold));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.ut-toggle { display: flex; flex-direction: column; gap: 4px; padding-top: 10px; }
+.ut {
+  padding: 3px 9px;
+  border-radius: 6px;
+  border: 1px solid rgba(255,255,255,.1);
+  background: transparent;
+  color: var(--t2);
+  font-family: var(--fs);
+  font-size: .7rem;
+  cursor: pointer;
+  transition: all .2s;
+}
+.ut.active { background: rgba(0,212,255,.2); border-color: var(--cyan); color: var(--cyan); }
+.cw-desc {
+  font-family: var(--fsg);
+  font-size: 1rem;
+  color: var(--cyan);
+  text-transform: capitalize;
+  letter-spacing: .5px;
+  margin-bottom: 10px;
+}
+.cw-meta { font-family: var(--fdm); font-size: .85rem; color: var(--t2); }
+.cw-meta strong { color: var(--t1); }
+.cw-right { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+.cw-icon-box {
+  position: relative;
+  width: 120px; height: 120px;
+  display: flex; align-items: center; justify-content: center;
+}
+.cw-icon-box img {
+  width: 100px; height: 100px;
+  filter: drop-shadow(0 0 22px rgba(0,212,255,.6)) drop-shadow(0 0 44px rgba(124,58,237,.3));
+  animation: iconBob 4s ease-in-out infinite;
+}
+@keyframes iconBob {
+  0%,100% { transform: translateY(0) scale(1); }
+  50%      { transform: translateY(-8px) scale(1.04); }
+}
+.cw-halo {
+  position: absolute; inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(0,212,255,.15) 0%, transparent 70%);
+  animation: haloBreath 3s ease-in-out infinite;
+}
+@keyframes haloBreath {
+  0%,100% { opacity: .5; transform: scale(.9); }
+  50%      { opacity: 1;  transform: scale(1.1); }
+}
+.local-time-box { text-align: center; }
+.ltb-label { font-family: var(--fsg); font-size: .6rem; letter-spacing: 3px; color: var(--t3); text-transform: uppercase; margin-bottom: 4px; }
+.ltb-val { font-family: var(--fb); font-size: 1.5rem; color: var(--teal); letter-spacing: 2px; }
+
+/* ── 7-DAY FORECAST BAR ── */
+.fc-bar-wrap { width: 100%; }
+.fc-bar {
+  display: flex;
+  gap: 4px;
+  padding: 12px 16px;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0,212,255,.2) transparent;
+}
+.fc-bar::-webkit-scrollbar { height: 4px; }
+.fc-bar::-webkit-scrollbar-thumb { background: rgba(0,212,255,.2); border-radius: 2px; }
+.fc-day {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 5px; min-width: 80px; padding: 10px 12px;
+  border-radius: 14px; cursor: pointer; transition: all .2s;
+  flex-shrink: 0; font-family: var(--fsg);
+}
+.fc-day:hover, .fc-day.active { background: rgba(0,212,255,.15); box-shadow: 0 0 14px rgba(0,212,255,.2); }
+.fc-day.active { border: 1px solid rgba(0,212,255,.35); }
+.fc-day-name { font-size: .72rem; letter-spacing: 1.5px; color: var(--t2); text-transform: uppercase; }
+.fc-day.active .fc-day-name { color: var(--cyan); }
+.fc-day-temp { font-family: var(--fb); font-size: 1.4rem; color: var(--t1); letter-spacing: 1px; }
+.fc-day img { width: 36px; height: 36px; filter: drop-shadow(0 0 6px rgba(255,255,255,.3)); }
+.fc-loading { color: var(--t3); font-size: .85rem; padding: 10px; font-family: var(--fdm); }
+
+/* ── STATS GRID ── */
+.stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.sc { padding: 20px 16px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 5px; }
+.sc-ico { font-size: 1.6rem; filter: drop-shadow(0 0 8px rgba(255,255,255,.3)); }
+.sc-lbl { font-family: var(--fsg); font-size: .68rem; letter-spacing: 1.5px; color: var(--t2); text-transform: uppercase; }
+.sc-val { font-family: var(--fb); font-size: 1.35rem; color: var(--t1); letter-spacing: 1px; }
+.sc-val.sm { font-family: var(--fsg); font-size: .85rem; letter-spacing: .5px; }
+.sc-track { width: 100%; height: 3px; background: rgba(255,255,255,.07); border-radius: 2px; overflow: hidden; margin-top: 4px; }
+.sc-fill { height: 100%; background: linear-gradient(90deg, var(--cyan), var(--violet)); border-radius: 2px; transition: width 1.2s ease; }
+.wcompass { display: flex; align-items: center; gap: 6px; margin-top: 4px; }
+.wc-ring { width: 30px; height: 30px; border-radius: 50%; border: 1px solid rgba(0,212,255,.3); background: rgba(0,212,255,.06); display: flex; align-items: center; justify-content: center; }
+.wc-arr { font-size: .95rem; color: var(--cyan); display: inline-block; transition: transform .5s ease; }
+.wc-dir { font-family: var(--fsg); font-size: .72rem; color: var(--t2); letter-spacing: 1px; }
+
+.sc:nth-child(1):hover { box-shadow: 0 0 28px rgba(59,130,246,.25); }
+.sc:nth-child(2):hover { box-shadow: 0 0 28px rgba(20,184,166,.25); }
+.sc:nth-child(3):hover { box-shadow: 0 0 28px rgba(139,92,246,.25); }
+.sc:nth-child(4):hover { box-shadow: 0 0 28px rgba(249,115,22,.25); }
+.sc:nth-child(5):hover { box-shadow: 0 0 28px rgba(148,163,184,.2); }
+.sc:nth-child(6):hover { box-shadow: 0 0 28px rgba(251,191,36,.25); }
+
+/* ── HOURLY CHART ── */
+.chart-card { padding: 24px; }
+.sec-title {
+  font-family: var(--fs);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--t1);
+  letter-spacing: .5px;
+  margin-bottom: 16px;
+  display: flex; align-items: center; gap: 10px;
+}
+.live-badge {
+  font-family: var(--fsg); font-size: .65rem; letter-spacing: 2px;
+  color: #4ade80; border: 1px solid rgba(74,222,128,.35);
+  border-radius: 20px; padding: 2px 8px;
+  animation: livePulse 2s ease-in-out infinite;
+}
+@keyframes livePulse { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
+.hourly-wrap { width: 100%; overflow-x: auto; scrollbar-width: thin; scrollbar-color: rgba(0,212,255,.2) transparent; }
+.hourly-wrap::-webkit-scrollbar { height: 4px; }
+.hourly-wrap::-webkit-scrollbar-thumb { background: rgba(0,212,255,.2); border-radius: 2px; }
+#hourlyCanvas { min-width: 600px; width: 100%; display: block; }
+.hourly-times { display: flex; gap: 0; margin-top: 8px; overflow-x: auto; scrollbar-width: none; }
+.ht-item { flex: 1; text-align: center; font-family: var(--fsg); font-size: .7rem; color: var(--t3); min-width: 60px; }
+
+/* ── MAP ── */
+.map-card { padding: 24px; }
+#leafMap { width: 100%; height: 340px; border-radius: 12px; overflow: hidden; margin-bottom: 14px; border: 1px solid rgba(255,255,255,.07); }
+.leaflet-tile-pane { filter: brightness(0.7) saturate(0.8) hue-rotate(200deg); }
+.map-legend { display: flex; flex-wrap: wrap; gap: 14px; }
+.ml-item { display: flex; align-items: center; gap: 6px; font-family: var(--fdm); font-size: .78rem; color: var(--t2); }
+.ml-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+
+/* ── FOOTER ── */
+.app-foot { text-align: center; padding: 32px 0 0; font-family: var(--fdm); font-size: .72rem; color: rgba(148,163,184,.35); letter-spacing: .5px; }
+
+/* ════════════════════════════════════════════
+   WEATHER THEME OVERLAYS
+   ════════════════════════════════════════════ */
+/* Night / Clear sky — show stars, darken photo */
+body.theme-night .photo-overlay {
+  background: linear-gradient(180deg, rgba(2,7,16,0.75) 0%, rgba(2,7,16,0.55) 40%, rgba(2,7,16,0.80) 100%);
+}
+
+/* Cloudy — lighten slightly, activate cloud drift */
+body.theme-clouds .photo-overlay {
+  background: linear-gradient(180deg, rgba(5,14,30,0.45) 0%, rgba(5,14,30,0.25) 40%, rgba(5,14,30,0.55) 100%);
+}
+
+/* Rain — darken and tint blue */
+body.theme-rain .photo-overlay {
+  background: linear-gradient(180deg, rgba(2,14,26,0.72) 0%, rgba(4,20,40,0.55) 40%, rgba(2,14,26,0.78) 100%);
+}
+
+/* Storm — very dark purple overlay */
+body.theme-storm .photo-overlay {
+  background: linear-gradient(180deg, rgba(10,5,18,0.82) 0%, rgba(15,8,26,0.68) 40%, rgba(10,5,18,0.88) 100%);
+}
+
+/* Snow — bright cold tint */
+body.theme-snow .photo-overlay {
+  background: linear-gradient(180deg, rgba(7,13,26,0.60) 0%, rgba(10,19,34,0.42) 40%, rgba(7,13,26,0.65) 100%);
+}
+
+/* ════════════════════════════════════════════
+   RESPONSIVE
+   ════════════════════════════════════════════ */
+@media (max-width: 660px) {
+  .cw-card { flex-direction: column; align-items: center; text-align: center; padding: 24px; }
+  .cw-temp-row { justify-content: center; }
+  .cw-city { font-size: 1.6rem; }
+  .cw-temp { font-size: 4rem; }
+  .cw-right { flex-direction: row; gap: 20px; }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .hero-title { font-size: 2rem; }
+  #leafMap { height: 240px; }
+}
+
+/* ── LEAFLET POPUP ── */
+.leaflet-popup-content-wrapper {
+  background: rgba(10,20,40,.95) !important;
+  border: 1px solid rgba(0,212,255,.25) !important;
+  color: #f1f5f9 !important;
+  font-family: var(--fdm) !important;
+  border-radius: 10px !important;
+  backdrop-filter: blur(12px);
+}
+.leaflet-popup-tip { background: rgba(10,20,40,.95) !important; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(0,212,255,.18); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(0,212,255,.35); }

@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AstroWeather — Live Cosmic Forecast</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@200;300;400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,700&family=Bebas+Neue&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- BACKGROUND WORLD -->
+  <div class="bg-world" id="bgWorld">
+    <div class="photo-bg" id="photoBg"></div>
+    <div class="photo-overlay" id="photoOverlay"></div>
+    <canvas id="starsCanvas"></canvas>
+    <div class="aurora-layer">
+      <div class="aur a1"></div>
+      <div class="aur a2"></div>
+      <div class="aur a3"></div>
+    </div>
+    <div class="cloud-photo-layer" id="cloudPhotoLayer">
+      <div class="cph cp1"></div>
+      <div class="cph cp2"></div>
+      <div class="cph cp3"></div>
+    </div>
+    <canvas id="rainCanvas" class="fx-canvas hidden"></canvas>
+    <canvas id="snowCanvas" class="fx-canvas hidden"></canvas>
+    <div class="shooters">
+      <div class="shot s1"></div>
+      <div class="shot s2"></div>
+      <div class="shot s3"></div>
+    </div>
+  </div>
+
+  <!-- APP -->
+  <div class="app">
+    <nav class="topnav">
+      <div class="brand">
+        <div class="brand-dot"></div>
+        <span class="brand-name">ASTROWEATHER</span>
+      </div>
+      <div class="nav-right">
+        <div class="nav-clock" id="navClock">--:-- --</div>
+      </div>
+    </nav>
+
+    <section class="hero-section">
+      <h1 class="hero-title">Real-time Sky &amp;<br><span class="hero-accent">Live Weather</span></h1>
+      <p class="hero-sub">Hourly forecasts · Live precipitation maps · Global coverage</p>
+      <div class="search-wrap">
+        <div class="search-box">
+          <svg class="sb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+          </svg>
+          <input id="cityInput" class="sb-input" type="text" placeholder="Search any city, village, state or zip…" autocomplete="off">
+          <button id="searchBtn" class="sb-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </button>
+        </div>
+        <div class="autocomplete-box" id="autocompleteBox"></div>
+      </div>
+      <div class="quick-row">
+        <button class="qpill" data-city="Lahore">📍 Lahore</button>
+        <button class="qpill" data-city="Karachi">🌊 Karachi</button>
+        <button class="qpill" data-city="Dubai">🏙 Dubai</button>
+        <button class="qpill" data-city="London">☁️ London</button>
+        <button class="qpill" data-city="New York">🗽 New York</button>
+        <button class="qpill" data-city="Tokyo">⛩ Tokyo</button>
+      </div>
+    </section>
+
+    <div id="stateLoading" class="state-box hidden">
+      <div class="spin-ring"></div>
+      <p>Scanning atmosphere…</p>
+    </div>
+
+    <div id="stateError" class="state-box hidden">
+      <div class="err-ico">⚡</div>
+      <p id="errorMsg">City not found. Please try again.</p>
+    </div>
+
+    <div id="weatherContent" class="wc hidden">
+      <div class="cw-card glass">
+        <div class="cw-left">
+          <div class="cw-loc">
+            <span class="cw-city" id="cwCity">--</span>
+            <span class="cw-country" id="cwCountry">--</span>
+          </div>
+          <div class="cw-temp-row">
+            <span class="cw-temp" id="cwTemp">--</span>
+            <div class="ut-toggle">
+              <button class="ut active" id="btnC">°C</button>
+              <button class="ut" id="btnF">°F</button>
+            </div>
+          </div>
+          <div class="cw-desc" id="cwDesc">--</div>
+          <div class="cw-meta">
+            Feels like <strong id="cwFeels">--</strong>
+            &nbsp;·&nbsp; ↑ <strong id="cwHigh">--</strong>
+            &nbsp;·&nbsp; ↓ <strong id="cwLow">--</strong>
+          </div>
+        </div>
+        <div class="cw-right">
+          <div class="cw-icon-box">
+            <img id="cwIcon" src="" alt="">
+            <div class="cw-halo"></div>
+          </div>
+          <div class="local-time-box">
+            <div class="ltb-label">LOCAL TIME</div>
+            <div class="ltb-val" id="cwLocalTime">--:--</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="fc-bar-wrap">
+        <div class="fc-bar glass" id="forecastBar">
+          <div class="fc-loading">Loading forecast…</div>
+        </div>
+      </div>
+
+      <div class="stats-grid">
+        <div class="sc glass">
+          <div class="sc-ico">💧</div><div class="sc-lbl">Humidity</div>
+          <div class="sc-val" id="sHumidity">--%</div>
+          <div class="sc-track"><div class="sc-fill" id="sHumFill" style="width:0%"></div></div>
+        </div>
+        <div class="sc glass">
+          <div class="sc-ico">💨</div><div class="sc-lbl">Wind</div>
+          <div class="sc-val" id="sWind">-- km/h</div>
+          <div class="wcompass">
+            <div class="wc-ring"><span class="wc-arr" id="wcArr">↑</span></div>
+            <span class="wc-dir" id="wcDir">N</span>
+          </div>
+        </div>
+        <div class="sc glass">
+          <div class="sc-ico">👁</div><div class="sc-lbl">Visibility</div>
+          <div class="sc-val" id="sVis">-- km</div>
+        </div>
+        <div class="sc glass">
+          <div class="sc-ico">🌡</div><div class="sc-lbl">Pressure</div>
+          <div class="sc-val" id="sPress">-- hPa</div>
+        </div>
+        <div class="sc glass">
+          <div class="sc-ico">☁️</div><div class="sc-lbl">Cloud Cover</div>
+          <div class="sc-val" id="sCloud">--%</div>
+        </div>
+        <div class="sc glass">
+          <div class="sc-ico">🌅</div><div class="sc-lbl">Sunrise / Sunset</div>
+          <div class="sc-val sm" id="sSun">-- / --</div>
+        </div>
+      </div>
+
+      <div class="chart-card glass">
+        <h3 class="sec-title">Hourly Forecast</h3>
+        <div class="hourly-wrap"><canvas id="hourlyCanvas" height="140"></canvas></div>
+        <div class="hourly-times" id="hourlyTimes"></div>
+      </div>
+
+      <div class="map-card glass">
+        <h3 class="sec-title">🗺 Precipitation Map <span class="live-badge">● LIVE</span></h3>
+        <div id="leafMap"></div>
+        <div class="map-legend">
+          <span class="ml-item"><span class="ml-dot" style="background:#4ade80"></span>0–0.5 mm/h</span>
+          <span class="ml-item"><span class="ml-dot" style="background:#16a34a"></span>0.5–2.5 mm/h</span>
+          <span class="ml-item"><span class="ml-dot" style="background:#eab308"></span>2.5–7.5 mm/h</span>
+          <span class="ml-item"><span class="ml-dot" style="background:#ef4444"></span>7.5+ mm/h</span>
+        </div>
+      </div>
+    </div>
+
+    <footer class="app-foot">
+      AstroWeather © 2025 &nbsp;·&nbsp; Powered by OpenWeatherMap &nbsp;·&nbsp; Map © OpenStreetMap contributors
+    </footer>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
